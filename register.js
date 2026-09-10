@@ -1,5 +1,8 @@
 const form = document.querySelector('#register-form');
 const errorMessage = document.querySelector('#register-error');
+const authFeedback = document.querySelector('#auth-feedback');
+const showAuthFeedback = (message, type = '') => { document.querySelector('#auth-feedback-message').textContent = message; authFeedback.className = `auth-feedback show ${type}`; };
+document.querySelector('#auth-feedback-close')?.addEventListener('click', () => authFeedback.classList.remove('show'));
 
 form?.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -16,9 +19,11 @@ form?.addEventListener('submit', async (event) => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'No fue posible crear la cuenta.');
-    window.location.href = data.user.role === 'teacher' ? '/teacher' : data.user.role === 'student' ? '/student' : '/parent';
+    showAuthFeedback('Cuenta creada. Preparando tu espacio…');
+    window.setTimeout(() => { window.location.href = data.user.role === 'teacher' ? '/teacher' : data.user.role === 'student' ? '/student' : '/parent'; }, 450);
   } catch (error) {
     errorMessage.textContent = error.message;
+    showAuthFeedback(error.message, 'error');
     button.disabled = false;
     button.innerHTML = 'Crear cuenta <span>→</span>';
   }

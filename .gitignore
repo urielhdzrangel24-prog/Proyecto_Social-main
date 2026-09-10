@@ -1,2 +1,4 @@
 synergai.db
+synergai.db-*
 __pycache__/
+uploads/

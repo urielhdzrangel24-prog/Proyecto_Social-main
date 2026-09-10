@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8fc" />
+    <title>Panel de maestros — SynergAI</title>
+    <link rel="stylesheet" href="teacher.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/"><img src="logoSAI.png" alt="" /><span>SynergAI</span></a>
+        <div class="profile-mini"><span class="avatar" id="sidebar-avatar">M</span><div><strong id="sidebar-name">Maestro</strong><small>Panel de maestro</small></div></div>
+        <nav class="side-nav" aria-label="Panel de maestro">
+          <button class="nav-item active" data-view="overview"><svg><use href="icons.svg#chart"></use></svg>Resumen</button>
+          <button class="nav-item" data-view="classes"><svg><use href="icons.svg#book"></use></svg>Mis aulas</button>
+          <button class="nav-item" data-view="tasks"><svg><use href="icons.svg#target"></use></svg>Actividades</button>
+          <button class="nav-item" data-view="submissions"><svg><use href="icons.svg#check"></use></svg>Entregas</button>
+          <button class="nav-item" data-view="settings"><svg><use href="icons.svg#progress"></use></svg>Mi espacio</button>
+        </nav>
+        <div class="sidebar-bottom"><div class="ai-tip"><svg><use href="icons.svg#spark"></use></svg><strong>Tu copiloto IA</strong><small>Pronto podrás crear y revisar actividades con ayuda.</small></div><button class="logout-button" id="logout-button">Cerrar sesión <span>↗</span></button></div>
+      </aside>
+      <main class="main-content">
+        <header class="topbar"><div><span class="breadcrumb">ESPACIO DEL MAESTRO</span><h1 id="page-title">Buenos días, <em id="welcome-name">maestro</em>.</h1></div><div class="top-actions"><span class="sync-status" id="sync-status"><i></i> Sincronizado</span><button class="icon-button" id="refresh-button" aria-label="Actualizar datos">↻</button><span class="avatar large" id="top-avatar">M</span></div></header>
+        <div id="feedback" class="feedback" role="status" aria-live="polite"><span id="feedback-message"></span><button id="feedback-close" aria-label="Cerrar mensaje">Cerrar</button></div>
+
+        <section class="view active" id="view-overview">
+          <div class="welcome-banner"><div><span class="eyebrow">MIÉRCOLES, 24 DE ABRIL</span><h2>Un buen día para<br /><em>hacer avanzar</em> a tu clase.</h2><p>Consulta tu actividad reciente y mantén el ritmo de tus aulas.</p></div><div class="banner-orb"><span>✦</span></div></div>
+          <div class="stats-grid"><article class="stat-card"><span class="stat-icon violet"><svg><use href="icons.svg#book"></use></svg></span><div><small>AULAS ACTIVAS</small><strong id="stat-classes">0</strong><span>espacios creados</span></div></article><article class="stat-card"><span class="stat-icon cream"><svg><use href="icons.svg#student"></use></svg></span><div><small>ESTUDIANTES</small><strong id="stat-students">0</strong><span>en tus aulas</span></div></article><article class="stat-card"><span class="stat-icon blue"><svg><use href="icons.svg#target"></use></svg></span><div><small>ACTIVIDADES</small><strong id="stat-tasks">0</strong><span>en tu espacio</span></div></article><article class="stat-card"><span class="stat-icon green"><svg><use href="icons.svg#check"></use></svg></span><div><small>PUBLICADAS</small><strong id="stat-published">0</strong><span>listas para alumnos</span></div></article></div>
+          <div class="content-grid"><section class="panel"><div class="panel-heading"><div><span class="eyebrow">TUS ESPACIOS</span><h2>Aulas recientes</h2></div><button class="text-button" data-action="new-class">Nueva aula <span>+</span></button></div><div class="class-grid" id="class-list"></div><div class="empty-state" id="class-empty"><div class="empty-icon"><svg><use href="icons.svg#book"></use></svg></div><h3>Tu primera aula empieza aquí</h3><p>Crea un espacio para organizar a tus estudiantes y actividades.</p><button class="primary-button" data-action="new-class">Crear aula</button></div></section><section class="panel activity-panel"><div class="panel-heading"><div><span class="eyebrow">ÚLTIMOS CAMBIOS</span><h2>Actividad reciente</h2></div></div><div class="task-list compact" id="recent-tasks"></div><div class="empty-state small" id="task-empty"><p>Aún no tienes actividades. Crea una desde el botón superior.</p></div></section></div>
+        </section>
+
+        <section class="view" id="view-classes"><div class="section-intro"><div><span class="eyebrow">ORGANIZA TU ENSEÑANZA</span><h2>Mis aulas</h2><p>Administra tus espacios y encuentra rápido lo que necesitas.</p></div><button class="primary-button" data-action="new-class">+ Nueva aula</button></div><div class="class-grid large" id="all-class-list"></div><div class="empty-state" id="all-class-empty"><h3>Aún no tienes aulas</h3><p>Empieza creando tu primer espacio de clase.</p><button class="primary-button" data-action="new-class">Crear aula</button></div></section>
+        <section class="view" id="view-tasks"><div class="section-intro"><div><span class="eyebrow">DISEÑA EXPERIENCIAS</span><h2>Actividades</h2><p>Crea, publica y prepara tus tareas para el siguiente paso.</p></div><div class="section-actions"><button class="secondary-button ai-button" data-action="new-task-ai">✦ Crear actividad con IA</button><button class="primary-button" data-action="new-task">+ Nueva actividad</button></div></div><div class="task-list full" id="all-task-list"></div><div class="empty-state" id="all-task-empty"><div class="empty-icon"><svg><use href="icons.svg#target"></use></svg></div><h3>Todavía no hay actividades</h3><p>Cuando crees una aparecerá aquí para que puedas editarla o publicarla.</p></div></section>
+        <section class="view" id="view-submissions"><div class="section-intro"><div><span class="eyebrow">REVISA Y ACOMPAÑA</span><h2>Entregas</h2><p>Consulta archivos y respuestas, y asigna retroalimentación.</p></div><button class="secondary-button" id="refresh-submissions">↻ Actualizar</button></div><div class="submission-list" id="submission-list"></div><div class="empty-state" id="submission-empty"><div class="empty-icon"><svg><use href="icons.svg#check"></use></svg></div><h3>Aún no hay entregas</h3><p>Cuando tus estudiantes entreguen una actividad aparecerá aquí.</p></div></section>
+        <section class="view" id="view-settings"><div class="section-intro"><div><span class="eyebrow">TU CUENTA</span><h2>Mi espacio</h2><p>Sesión activa y preferencias básicas del panel.</p></div></div><div class="settings-card"><span class="avatar large" id="settings-avatar">M</span><div><h3 id="settings-name">Maestro</h3><p id="settings-email">—</p><span class="role-pill">MAESTRO</span></div><button class="secondary-button" id="settings-logout">Cerrar sesión</button></div></section>
+      </main>
+    </div>
+    <div class="modal-backdrop" id="modal-backdrop" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Cerrar">×</button><span class="eyebrow" id="modal-kicker">NUEVO ESPACIO</span><h2 id="modal-title">Crea un aula</h2><p id="modal-description">Un lugar claro para reunir a tus estudiantes.</p><form id="modal-form"></form></section></div>
+    <script src="teacher.js"></script>
+  </body>
+</html>
