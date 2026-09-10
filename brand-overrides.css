@@ -4,3 +4,66 @@
   object-fit: contain;
   border-radius: 8px;
 }
+
+/* Escala fluida para escritorio y comportamiento consistente de los vectores. */
+.icon, .node-icon, .role-icon, .mini-icon { display: inline-block; width: 1.25em; height: 1.25em; flex: 0 0 auto; }
+.node-icon { width: 34px; height: 34px; }
+.role-icon { width: 24px; height: 24px; padding: 10px; box-sizing: content-box; }
+.mini-icon { width: 18px; height: 18px; color: var(--accent); background: #efedff; padding: 5px; border-radius: 8px; box-sizing: content-box; }
+.arrow { width: 20px; height: 20px; }
+.feature-icon, .step-icon, .subject-symbol, .dashboard-icon { display: inline-grid; place-items: center; }
+.feature-icon, .step-icon { width: 32px; height: 32px; }
+.subject-symbol { padding: 8px; }
+.dashboard-icon { width: 20px; height: 20px; }
+.role-card, .dashboard-wrap, .comparison, .feature-grid article { will-change: transform; }
+.role-card { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .25s; }
+.hero { overflow: visible; }
+.hero-art { overflow: visible; isolation: isolate; animation: art-enter .9s cubic-bezier(.2,.8,.2,1) both; }
+.hero-art::before { content: ''; position: absolute; inset: 2% -3%; z-index: -1; pointer-events: none; border-radius: 50%; background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(164, 153, 255, .22), transparent 20%), radial-gradient(circle at 50% 50%, rgba(238, 237, 255, .85), transparent 68%); filter: blur(10px); transition: background-position .25s ease; }
+.hero-art::after { content: ''; position: absolute; width: 190px; height: 190px; left: calc(var(--mx, 50%) - 95px); top: calc(var(--my, 50%) - 95px); border: 1px solid rgba(112,98,220,.16); border-radius: 50%; pointer-events: none; opacity: var(--cursor-glow, 0); transform: scale(var(--cursor-scale, 1)); transition: opacity .35s ease, transform .45s cubic-bezier(.2,.8,.2,1); }
+.orbit-one, .orbit-two { animation: orbit-drift 18s ease-in-out infinite; transform-origin: center; }
+.orbit-two { animation-duration: 23s; animation-direction: reverse; }
+.ai-core { transform: translate(calc(-50% + var(--core-x, 0px)), calc(-50% + var(--core-y, 0px))); transition: box-shadow .35s ease, filter .35s ease; }
+.hero-art.is-near .ai-core { filter: brightness(1.08); box-shadow: 0 18px 42px rgba(112,98,220,.45), 0 0 42px rgba(156,145,255,.3); }
+.art-node { transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
+.hero-art.is-near .node-student { transform: translate(calc(var(--student-x, 0px) * .45), calc(var(--student-y, 0px) * .45)); }
+.hero-art.is-near .node-teacher { transform: translate(calc(var(--teacher-x, 0px) * .45), calc(var(--teacher-y, 0px) * .45)); }
+.floating-note { animation: float-note 5s ease-in-out infinite; }
+.note-focus { animation-delay: -2.2s; }
+@keyframes art-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes float-note { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes orbit-drift { 0%,100% { rotate: -1deg; scale: 1; } 50% { rotate: 3deg; scale: 1.025; } }
+.floating-note { z-index: 3; white-space: nowrap; }
+.note-progress { left: 5%; }
+.note-focus { right: 5%; }
+body { overflow-x: clip; }
+@media (min-width: 1200px) {
+  body { font-size: 17px; }
+  .container { width: min(1360px, calc(100% - 112px)); }
+  .hero { grid-template-columns: 43% 57%; min-height: 720px; padding-top: 48px; padding-bottom: 52px; }
+  .hero-art { height: 610px; transform: scale(1.12); }
+  .hero-copy>p { font-size: 18px; max-width: 510px; }
+  .roles-section { padding-top: 92px; padding-bottom: 105px; }
+  .role-card { min-height: 285px; padding: 32px; }
+  .philosophy, .teacher-section { padding-top: 105px; padding-bottom: 112px; }
+  .feature-grid { margin-top: 72px; }
+  .steps-section { padding-top: 105px; padding-bottom: 115px; }
+  .steps { margin-top: 58px; }
+  .product-section { padding-bottom: 112px; }
+  .dashboard-wrap { margin-top: 38px; }
+  .dashboard-wrap { padding-left: 10%; padding-right: 10%; }
+  .final-cta { padding-top: 105px; padding-bottom: 112px; }
+}
+@media (max-width: 600px) {
+  .container { width: min(100% - 32px, 520px); }
+  .hero-art { transform: scale(.76); margin-left: -12%; margin-right: -12%; width: 124%; }
+  .floating-note { font-size: 10px; }
+  .note-progress { left: 2%; }
+  .note-focus { right: 2%; }
+  .steps { grid-template-columns: 1fr; }
+  .dashboard { transform: scale(.82); margin-bottom: -72px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-art, .floating-note, .orbit-one, .orbit-two { animation: none; }
+  .hero-art::after { display: none; }
+}
