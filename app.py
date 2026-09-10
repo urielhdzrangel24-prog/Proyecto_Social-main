@@ -16,6 +16,8 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).parent
 DB_PATH = ROOT / "synergai.db"
 SESSIONS = {}
+AUTH_ATTEMPTS = {}
+MAX_BODY_SIZE = 16 * 1024
 
 
 def hash_password(password, salt=None):
@@ -109,6 +111,22 @@ def user_payload(user):
     return {"id": user["id"], "name": user["name"], "email": user["email"], "role": user["role"]}
 
 
+def valid_registration_password(password):
+    return (len(password) >= 8 and any(c.isupper() for c in password)
+            and any(c.islower() for c in password) and any(c.isdigit() for c in password))
+
+
+def allowed_attempt(ip):
+    now = time.time()
+    attempts = [stamp for stamp in AUTH_ATTEMPTS.get(ip, []) if stamp > now - 60]
+    if len(attempts) >= 8:
+        AUTH_ATTEMPTS[ip] = attempts
+        return False
+    attempts.append(now)
+    AUTH_ATTEMPTS[ip] = attempts
+    return True
+
+
 class AppHandler(SimpleHTTPRequestHandler):
     def log_message(self, format_string, *args):
         print(f"[{self.log_date_time_string}] {format_string % args}")
@@ -118,6 +136,9 @@ class AppHandler(SimpleHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         for key, value in (extra_headers or {}).items():
             self.send_header(key, value)
         self.end_headers()
@@ -125,7 +146,16 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     def request_body(self):
         length = int(self.headers.get("Content-Length", 0))
+        if length > MAX_BODY_SIZE:
+            raise ValueError("request too large")
         return json.loads(self.rfile.read(length) or b"{}")
+
+    def end_headers(self):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'")
+        super().end_headers()
 
     def session_user(self):
         jar = cookies.SimpleCookie(self.headers.get("Cookie", ""))
@@ -143,6 +173,8 @@ class AppHandler(SimpleHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/login":
             self.path = "/login.html"
+        elif path == "/register":
+            self.path = "/register.html"
         elif path == "/api/session":
             user = self.session_user()
             self.send_json({"authenticated": bool(user), "user": user_payload(user) if user else None})
@@ -155,9 +187,12 @@ class AppHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         path = urlparse(self.path).path
         if path == "/api/auth/login":
+            if not allowed_attempt(self.client_address[0]):
+                self.send_json({"error": "Demasiados intentos. Espera un minuto e inténtalo de nuevo."}, 429)
+                return
             try:
                 body = self.request_body()
-            except (json.JSONDecodeError, UnicodeDecodeError):
+            except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
                 self.send_json({"error": "La solicitud no es válida."}, 400)
                 return
             email = str(body.get("email", "")).strip().lower()
@@ -173,6 +208,44 @@ class AppHandler(SimpleHTTPRequestHandler):
                 {"user": user_payload(user)},
                 extra_headers={"Set-Cookie": f"synergai_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800"},
             )
+            return
+        if path == "/api/auth/register":
+            if not allowed_attempt(self.client_address[0]):
+                self.send_json({"error": "Demasiados intentos. Espera un minuto e inténtalo de nuevo."}, 429)
+                return
+            try:
+                body = self.request_body()
+            except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+                self.send_json({"error": "La solicitud no es válida."}, 400)
+                return
+            name = " ".join(str(body.get("name", "")).strip().split())
+            email = str(body.get("email", "")).strip().lower()
+            password = str(body.get("password", ""))
+            role = str(body.get("role", "student")).strip().lower()
+            if not 2 <= len(name) <= 80 or "@" not in email or len(email) > 160:
+                self.send_json({"error": "Revisa tu nombre y correo electrónico."}, 400)
+                return
+            if role not in {"teacher", "student", "parent"}:
+                self.send_json({"error": "El tipo de cuenta no es válido."}, 400)
+                return
+            if not valid_registration_password(password):
+                self.send_json({"error": "La contraseña debe tener 8 caracteres, mayúscula, minúscula y número."}, 400)
+                return
+            try:
+                with db_connection() as connection:
+                    cursor = connection.execute(
+                        "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
+                        (name, email, hash_password(password), role),
+                    )
+                    user = connection.execute("SELECT * FROM users WHERE id = ?", (cursor.lastrowid,)).fetchone()
+            except sqlite3.IntegrityError:
+                self.send_json({"error": "No fue posible crear la cuenta con esos datos."}, 409)
+                return
+            token = secrets.token_urlsafe(32)
+            SESSIONS[token] = {"user_id": user["id"], "expires": time.time() + 60 * 60 * 8}
+            self.send_json({"user": user_payload(user)}, 201, {
+                "Set-Cookie": f"synergai_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800"
+            })
             return
         if path == "/api/auth/logout":
             jar = cookies.SimpleCookie(self.headers.get("Cookie", ""))
